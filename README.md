@@ -14,7 +14,7 @@ After all that:
 - Open config.ini
 - Enter your Bluesky handle (without the @) after "bsky_handle ="
 - Enter an [app password](https://bsky.app/settings/app-passwords) after "app_password =" (you can use your actual password but an app password is safer!)
-- By default, posts from this application are tagged as both English and Japanese. If you want to change it to any single language, add an [ISO language code](https://www.w3schools.com/tags/ref_language_codes.asp) after "language =". Otherwise you can leave it blank.
+- By default, posts from this application are tagged as both English and Japanese. If you want to change it to any single language, add an [ISO language code](https://www.w3schools.com/tags/ref_language_codes.asp) after "language =". Otherwise you can leave it blank or edit the source code if you want posts tagged as multiple other languages.
 
 Here's an example of what the configured ini file should look like:
 ```
@@ -35,11 +35,12 @@ Once the ini file is configured, save it and run the exe (or main.py). If the ap
 - You can type a caption in the text box at the bottom
 - Click the "Clear Canvas" button to, uhh...
 - Click the "Post to Bluesky" button to... clear the canvas?
-- TIP: If you want to draw at the very edges of the canvas without accidentally clicking on something else (like the close button...), you can make the window bigger (the canvas will stay the same size).
+- TIP: If you want to draw at the very edges of the canvas without accidentally clicking on something else (like the close button...), you can make the window bigger (the canvas will stay the same size)
 
 # Quirks and limitations of this application
 - No undo/redo
-- Posting will also immediately clear the canvas if the post was successful (this is intentional, done is done)
+- Only one colour
+- Posting will also immediately clear the canvas if the post was successful (this is intentional, done is done).
 - Drawn lines in the final posted image will be slightly thicker than they were while drawing. This is a quirk with how drawing and image conversion is handled in this app. It's complicated, not sure how to fix this without using a completely different framework and rewriting everything (turns out tkinter isn't really suitable for this kind of application it seems).
 - The program will probably lag if too many lines are drawn. Erasing lines will help if this happens.
 - Hashtags (and tagging other users, I assume) don't work in the caption field, they won't be blue and clickable in the post. #SkyDraw will always be added at the end though (and is a proper tag).
