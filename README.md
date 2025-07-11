@@ -13,6 +13,7 @@ This application requires [Ghostscript](https://ghostscript.com/) installed to b
 I wish this wasn't necessary and if I find a way to avoid this prerequisite, I will.
 
 After all that:
+- Unzip the zip (if downloaded from a release)
 - Open config.ini
 - Enter your Bluesky handle (without the @) after "bsky_handle ="
 - Enter an [app password](https://bsky.app/settings/app-passwords) after "app_password =" (you can use your actual password but an app password is safer!)
