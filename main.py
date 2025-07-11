@@ -18,10 +18,16 @@ yPrevious = 0
 LMBWasReleased = TRUE
 
 # Get data from config.ini
-config = configparser.ConfigParser()
+config = configparser.ConfigParser(allow_no_value=True)
 config.read("config.ini")
 handle = config["Login"]["bsky_handle"]
 password = config["Login"]["app_password"]
+configLang = config["Misc"]["language"]
+
+if configLang == "":
+    langs = ['en', 'ja']
+else:
+    langs = [configLang]
 
 # Bluesky setup
 client = Client()
@@ -75,7 +81,7 @@ def post_to_bsky():
             img_data = f.read()
 
         try:
-            client.send_image(text=postText, image=img_data, image_alt="", langs=['en-US', 'en-AU', 'ja'])
+            client.send_image(text=postText, image=img_data, image_alt="", langs=langs)
         except:
             messagebox.showerror("Unable to post", "Couldn't post for some reason???")
         else:

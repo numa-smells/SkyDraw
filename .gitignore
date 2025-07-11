@@ -1,5 +1,6 @@
 canvas/
 build/
+builds/
 dist/
 .venv/
 *.spec
