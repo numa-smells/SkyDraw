@@ -1,10 +1,16 @@
 # SkyDraw
 Anti-perfectionist Bluesky doodling application
 
-[Get the latest release here!](https://github.com/iamsako/SkyDraw/releases/latest)
+[Get the latest release here!](https://github.com/iamsako/SkyDraw/releases/latest) 
 (Only a Windows build is available for now, but hopefully the source code works on other platforms)
 
 # How to setup
+**DUMB PREREQUISITE:** 
+This application requires [Ghostscript](https://ghostscript.com/) installed to be able to convert the drawing from a .eps file (the format that Tkinter, the Python GUI framework this uses, saves the canvas as) to a normal image format that can be posted. Just regular Ghostscript is required, not GhostPCL or XPS or whatever else listed on the downloads page. Get the AGPL release for your platform. After downloading and installing it, make sure it appears in Path in your system environment variables (as "...\gs\gs(version)\bin"). If you have no idea what that last sentence was on about, the installer should've done that automatically anyway so you should be fine.
+
+I wish this wasn't necessary and if I find a way to avoid this prerequisite, I will.
+
+After all that:
 - Open config.ini
 - Enter your Bluesky handle (without the @) after "bsky_handle ="
 - Enter an [app password](https://bsky.app/settings/app-passwords) after "app_password =" (you can use your actual password but an app password is safer!)
@@ -20,7 +26,7 @@ app_password = abcd-1234-efgh-5678
 language = en
 ```
 
-Once the ini file is configured, save it and run the exe (or main.py). If the app was able to login to your account, the "Post to Bluesky" button will be blue and it will have your profile picture on it (very teeny tiny version of it). Nice!
+Once the ini file is configured, save it and run the exe (or main.py). If the app was able to login to your account, the "Post to Bluesky" button will be blue and it will have your profile picture on it (very teeny tiny). Nice!
 
 # How to use
 - Left click to draw
@@ -37,9 +43,8 @@ Once the ini file is configured, save it and run the exe (or main.py). If the ap
 - Drawn lines in the final posted image will be slightly thicker than they were while drawing. This is a quirk with how drawing and image conversion is handled in this app. It's complicated, not sure how to fix this without using a completely different framework and rewriting everything (turns out tkinter isn't really suitable for this kind of application it seems).
 - The program will probably lag if too many lines are drawn. Erasing lines will help if this happens.
 - Hashtags (and tagging other users, I assume) don't work in the caption field, they won't be blue and clickable in the post. #SkyDraw will always be added at the end though (and is a proper tag).
-- Posts won't have any content warnings applied (may be applied later by moderation).
+- Posts won't have any content warnings applied, so sensitive drawings may get them slapped on later on by Bluesky moderation. I may add a checkbox for it eventually, if I can figure out how to get that working.
 
-# OK cool I guess
 Nearly everything about this application new and unfamiliar to me. I'm not used to Python or Tkinter and haven't really dealt with APIs before. I don't know the best way to handle things like safely storing and reading login details and passwords. This is my first public project on GitHub, I don't know if I'm doing things correctly! 
 
-This application is incredibly jank and I know it. It takes a long time to start up, lags if you draw too much and the final image is slighly different to how it appeared on the canvas. But despite all that... it's functional and is exactly the application I wanted to make. It's good enough for me to use regularly throught the past year (with 60+ posts from it as of writing), so I thought maybe it's good enough for other people to use too. So here it is.
+This application is incredibly jank and I know it. It takes a long time to start up, lags if you draw too much, requires downloading something else to convert the drawing to an image file, and the final image is slighly different to how it appeared on the canvas. But despite all that... it's functional and is exactly the application I wanted to make for myself. It's good enough for me to use regularly throughout the past year (with 60+ posts from it as of writing), so I thought it might be good enough for other people to use if they want. I wish the setup was simpler, but here it is. Maybe someday I'll completely remake this in a different language/framework to be more performant and easier to setup.
