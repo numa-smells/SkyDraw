@@ -1,0 +1,5 @@
+canvas/
+build/
+dist/
+.venv/
+*.spec
