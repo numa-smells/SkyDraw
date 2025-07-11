@@ -1,10 +1,12 @@
 # SkyDraw
 Anti-perfectionist Bluesky doodling application
 
+<img src="https://cdn.bsky.app/img/feed_fullsize/plain/did:plc:pkhdd7vr3zruq3uszwqunews/bafkreic2wdtqbr3riaaz2eja3eelzkapezd7wokmjbeg3yucboz2kx7rxq@jpeg" alt="sampleImage1" width="256"/> <img src="https://cdn.bsky.app/img/feed_fullsize/plain/did:plc:pkhdd7vr3zruq3uszwqunews/bafkreia67hg7rpfdvrjknsvinph2ytirmd7mlkakrbenen2vsamyftavbe@jpeg" alt="sampleImage2" width="256"/> <img src="https://cdn.bsky.app/img/feed_fullsize/plain/did:plc:pkhdd7vr3zruq3uszwqunews/bafkreiez5ta2xdwsvc4xwpjsubxiq2vmsveydzlwqiaydlargwo67znxri@jpeg" alt="sampleImage3" width="256"/>
+
 [Get the latest release here!](https://github.com/iamsako/SkyDraw/releases/latest) 
 (Only a Windows build is available for now, but hopefully the source code works on other platforms)
 
-# How to setup
+## How to setup
 **DUMB PREREQUISITE:** 
 This application requires [Ghostscript](https://ghostscript.com/) installed to be able to convert the drawing from a .eps file (the format that Tkinter, the Python GUI framework this uses, saves the canvas as) to a normal image format that can be posted. Just regular Ghostscript is required, not GhostPCL or XPS or whatever else listed on the downloads page. Get the AGPL release for your platform. After downloading and installing it, make sure it appears in Path in your system environment variables (as "...\gs\gs(version)\bin"). If you have no idea what that last sentence was on about, the installer should've done that automatically anyway so you should be fine.
 
@@ -28,7 +30,7 @@ language = en
 
 Once the ini file is configured, save it and run the exe (or main.py). If the app was able to login to your account, the "Post to Bluesky" button will be blue and it will have your profile picture on it (very teeny tiny). Nice!
 
-# How to use
+## How to use
 - Left click to draw
 - Right click to erase
 - Change the brush and eraser size with the sliders
@@ -37,7 +39,7 @@ Once the ini file is configured, save it and run the exe (or main.py). If the ap
 - Click the "Post to Bluesky" button to... clear the canvas?
 - TIP: If you want to draw at the very edges of the canvas without accidentally clicking on something else (like the close button...), you can make the window bigger (the canvas will stay the same size)
 
-# Quirks and limitations of this application
+## Quirks and limitations of this application
 - No undo/redo
 - Only one colour
 - Posting will also immediately clear the canvas if the post was successful (this is intentional, done is done).
@@ -45,6 +47,8 @@ Once the ini file is configured, save it and run the exe (or main.py). If the ap
 - The program will probably lag if too many lines are drawn. Erasing lines will help if this happens.
 - Hashtags (and tagging other users, I assume) don't work in the caption field, they won't be blue and clickable in the post. #SkyDraw will always be added at the end though (and is a proper tag).
 - Posts won't have any content warnings applied, so sensitive drawings may get them slapped on later on by Bluesky moderation. I may add a checkbox for it eventually, if I can figure out how to get that working.
+
+<img src="https://cdn.bsky.app/img/feed_fullsize/plain/did:plc:pkhdd7vr3zruq3uszwqunews/bafkreifgda3tdua2juhe4revltkitwhnkdm5tdwpb5646kjs2fjdtpktsa@jpeg" alt="sampleImage3" width="256"/>
 
 Nearly everything about this application new and unfamiliar to me. I'm not used to Python or Tkinter and haven't really dealt with APIs before. I don't know the best way to handle things like safely storing and reading login details and passwords. This is my first public project on GitHub, I don't know if I'm doing things correctly! 
 
