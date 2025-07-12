@@ -2,7 +2,7 @@ import requests
 import configparser
 from tkinter import *
 from tkinter import messagebox
-from PIL import ImageTk, Image, ImageDraw, EpsImagePlugin
+from PIL import ImageTk, Image
 from atproto import Client, client_utils
 from io import BytesIO
 from pathlib import Path
@@ -219,17 +219,80 @@ def LMB_released(event):
 
 eraser_border = canvas.create_rectangle(0,0,0,0,outline="#7F7F7F", state='hidden')
 
+def pointInBox(ax,ay,x0,y0,x1,y1):
+    return (x0 <= ax < x1) and (y0 <= ay < y1)
+
+def boxIntersection(x_in,y_in,x_out,y_out,x0,y0,x1,y1):
+    #no idea if this is good or not
+    #assuming one point is inside the rectangle and the other is outside
+    #return the point of intersection
+
+    if (x_in != x_out):
+        slope = (y_out - y_in) / (x_out - x_in)
+        intercept = y_in - x_in * slope
+
+        if x_out >= x1:
+            d = x1 * slope + intercept
+            if y0 <= d <= y1:
+                return x1, d
+        if x_out <= x0:
+            d = x0 * slope + intercept
+            if y0 <= d <= y1:
+                return x0, d
+        
+        if y_out >= y1:
+            d = (y1 - intercept) / slope
+            if x0 <= d <= x1:
+                return d, y1
+            
+        if y_out <= y0:
+            d = (y0 - intercept) / slope
+            if x0 <= d <= x1:
+                return d, y0
+
+    #line is veritcal
+    if y_out >= y1:
+        return x_out,y1
+    
+    if y_out <= y0:
+        return x_out,y0
+    
+    return -1, -1 #error, should never happen
+
 def erase(event):
     x = event.x
     y = event.y
     
     canvas.itemconfig(eraser_border, state='normal')
-    canvas.coords(eraser_border, x-eraseRange, y-eraseRange, x+eraseRange, y+eraseRange)
+
+    eraseRect = [x-eraseRange, y-eraseRange, x+eraseRange, y+eraseRange]
+    canvas.coords(eraser_border,*eraseRect)
     
-    inRange = canvas.find_overlapping(x-eraseRange, y-eraseRange, x+eraseRange, y+eraseRange)
+    inRange = canvas.find_overlapping(*eraseRect)
     for stroke in inRange:
         if stroke != eraser_border:
-            canvas.delete(stroke)
+            ax,ay,bx,by = canvas.coords(stroke)
+            line_width = float(canvas.itemcget(stroke,"width"))/2
+            state = 0
+
+            #increase eraser relative to line width
+            eraseRect_w = [x-eraseRange-line_width, y-eraseRange-line_width, x+eraseRange+line_width, y+eraseRange+line_width]
+
+            #check which points are inside the rectangle
+            if (pointInBox(ax,ay,*eraseRect_w)): state += 1
+            if (pointInBox(bx,by,*eraseRect_w)): state += 2
+
+            match state:
+                case 1:#if its just one, move the colliding point to the intersection point
+                    nx, ny = boxIntersection(ax,ay,bx,by,*eraseRect_w)
+                    if (nx != -1):
+                        canvas.coords(stroke,nx,ny,bx,by)
+                case 2:
+                    nx, ny = boxIntersection(bx,by,ax,ay,*eraseRect_w)
+                    if (nx != -1):
+                        canvas.coords(stroke,ax,ay,nx,ny)
+                case 3:#else just delete the line
+                    canvas.delete(stroke)
 
 def RMB_released(event):
     canvas.itemconfig(eraser_border, state='hidden')
