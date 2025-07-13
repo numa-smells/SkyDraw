@@ -220,7 +220,7 @@ def LMB_released(event):
 eraser_border = canvas.create_rectangle(0,0,0,0,outline="#7F7F7F", state='hidden')
 
 def pointInBox(ax,ay,x0,y0,x1,y1):
-    return (x0 <= ax < x1) and (y0 <= ay < y1)
+    return (x0 <= ax <= x1) and (y0 <= ay <= y1)
 
 def boxIntersection(x_in,y_in,x_out,y_out,x0,y0,x1,y1):
     #no idea if this is good or not
@@ -240,15 +240,16 @@ def boxIntersection(x_in,y_in,x_out,y_out,x0,y0,x1,y1):
             if y0 <= d <= y1:
                 return x0, d
         
-        if y_out >= y1:
-            d = (y1 - intercept) / slope
-            if x0 <= d <= x1:
-                return d, y1
-            
-        if y_out <= y0:
-            d = (y0 - intercept) / slope
-            if x0 <= d <= x1:
-                return d, y0
+        if (slope != 0):
+            if y_out >= y1:
+                d = (y1 - intercept) / slope
+                if x0 <= d <= x1:
+                    return d, y1
+                
+            if y_out <= y0:
+                d = (y0 - intercept) / slope
+                if x0 <= d <= x1:
+                    return d, y0
 
     #line is veritcal
     if y_out >= y1:
@@ -283,6 +284,18 @@ def erase(event):
             if (pointInBox(bx,by,*eraseRect_w)): state += 2
 
             match state:
+                case 0:
+                    #this means the line intersects the box at two points
+                    #so it has to be split into two lines 
+
+                    nx, ny = boxIntersection(ax,ay,bx,by,*eraseRect_w)
+                    if (nx != -1 ):
+                        canvas.coords(stroke,nx,ny,bx,by)
+
+                    nx, ny = boxIntersection(bx,by,ax,ay,*eraseRect_w)
+                    if (nx != -1 ):
+                        canvas.create_line(nx,ny,ax,ay, width=line_width*2, fill=bskyBlue, capstyle="round", joinstyle="round")
+
                 case 1:#if its just one, move the colliding point to the intersection point
                     nx, ny = boxIntersection(ax,ay,bx,by,*eraseRect_w)
                     if (nx != -1):
@@ -291,7 +304,7 @@ def erase(event):
                     nx, ny = boxIntersection(bx,by,ax,ay,*eraseRect_w)
                     if (nx != -1):
                         canvas.coords(stroke,ax,ay,nx,ny)
-                case 3:#else just delete the line
+                case 3:#the entire line is within the eraser, so delete it
                     canvas.delete(stroke)
 
 def RMB_released(event):
