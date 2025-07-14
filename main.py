@@ -141,11 +141,13 @@ def post_to_bsky():
 
         for text in caption.split(" "):
             if re.fullmatch(hashtag_regex, text) != None:
-                postText.tag(text + " ", text[1:])
+                postText.tag(text, text[1:])
+                postText.text(" ")
                 continue
 
             if re.fullmatch(link_regex, text) != None:
-                postText.link(text + " ", text)
+                postText.link(text, text)
+                postText.text(" ")
                 continue
 
             if len(text) > 1 and text[0] == '@':
@@ -154,7 +156,8 @@ def post_to_bsky():
                     messagebox.showerror("Invalid Handle","Attempting to tag a user that does not exist: " + text)
                     return
                 
-                postText.mention(text+ " ", did)
+                postText.mention(text, did)
+                postText.text(" ")
                 continue
             
             postText.text(text + " ")
@@ -174,7 +177,7 @@ def post_to_bsky():
             clear_canvas()
     
     else:
-        #messagebox.showerror("Unable to post", "SkyDraw is not logged in to your Bluesky account.")
+        #try to log-in again
         login_thread()
 
 # Window setup
