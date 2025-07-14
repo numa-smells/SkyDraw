@@ -7,6 +7,8 @@ from atproto import Client, client_utils
 from io import BytesIO
 from pathlib import Path
 from threading import *
+import re
+import dns.resolver
 
 # Variables
 bskyBlue = "#1083fe"
@@ -88,21 +90,74 @@ def clear_canvas():
         if stroke != eraser_border:
             canvas.delete(stroke)
 
+def resolve_handle(handle: str) -> str | None:
+    #try DNS
+    result = None
+
+    try:
+        answers = dns.resolver.resolve(f"_atproto.{handle}", "TXT")
+
+        for answer in answers:
+            txt = answer.to_text()
+            if txt.startswith('"did='):
+                result = txt[len('"did='):-1]
+    except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
+        pass
+
+    #try wellknown http
+    if result == None:
+        try:
+            response = requests.get(f"https://{handle}/.well-known/atproto-did", timeout=5.0)
+            response.raise_for_status()
+            result = response.text.strip()
+        except requests.ConnectionError:
+            pass
+
+    return result
+
+hashtag_regex = re.compile(r'(^|\B)#(?![0-9_]+\b)([a-zA-Z0-9_]{1,30})(\b|\r)')
+link_regex = re.compile(r'((http|https)://)(www.)?[a-zA-Z0-9@:%._\+~#?&//=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%._\+~#?&//=]*)')
+#full urls only.
+
 # Post to Bluesky
 def post_to_bsky():
     save_as_png()
 
     if loggedIn:
+        caption = (captionInput.get().strip().encode('ascii', 'ignore')).decode("utf-8")
+        alt_text = (altTextInput.get().strip().encode('ascii', 'ignore')).decode("utf-8")
+
+        #validate inputs
+        if (len(caption) > 300):
+            messagebox.showerror("Invalid caption length","Caption must be < 300 chars long. Currently it is: " + str(len(caption)))
+            return
+        
+        if (len(alt_text) > 1000):
+            messagebox.showerror("Invalid alt-text length","Alt-Text must be < 1000 chars long. Currently it is: " + str(len(alt_text)))
+            return
+
+        #build text
         postText = client_utils.TextBuilder()
 
-        caption = captionInput.get()
-
         for text in caption.split(" "):
-            if len(text) > 0:
-                if text[0] == '#' and len(text) > 1:
-                    postText.tag(text + " ", text[1:])
-                else:
-                    postText.text(text + " ")
+            if re.fullmatch(hashtag_regex, text) != None:
+                postText.tag(text + " ", text[1:])
+                continue
+
+            if re.fullmatch(link_regex, text) != None:
+                postText.link(text + " ", text)
+                continue
+
+            if len(text) > 1 and text[0] == '@':
+                did = resolve_handle(text[1:])
+                if did == None:
+                    messagebox.showerror("Invalid Handle","Attempting to tag a user that does not exist: " + text)
+                    return
+                
+                postText.mention(text+ " ", did)
+                continue
+            
+            postText.text(text + " ")
 
         postText.tag("#SkyDraw", "SkyDraw")
 
@@ -110,7 +165,7 @@ def post_to_bsky():
             img_data = f.read()
 
         try:
-            client.send_image(text=postText, image=img_data, image_alt=altTextInput.get(), langs=langs)
+            client.send_image(text=postText, image=img_data, image_alt=alt_text, langs=langs)
         except:
             messagebox.showerror("Unable to post", "Couldn't post for some reason???")
         else:
@@ -163,7 +218,7 @@ clearButton.pack(side=RIGHT)
 Label(row1, text="   Stabilizer: ").pack(side=LEFT)
 stabilizerSlider.pack(side=LEFT, fill="x", expand=TRUE)
 
-Label(row3, text="Alt Text: ").pack(side=LEFT)
+Label(row3, text="Alt-Text: ").pack(side=LEFT)
 altTextInput.pack(side=LEFT, fill="x", expand=TRUE)
 
 # Set sliders to default values
