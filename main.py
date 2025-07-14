@@ -6,6 +6,7 @@ from PIL import ImageTk, Image
 from atproto import Client, client_utils
 from io import BytesIO
 from pathlib import Path
+from threading import *
 
 # Variables
 bskyBlue = "#1083fe"
@@ -19,35 +20,43 @@ xPrevious = 0
 yPrevious = 0
 LMBWasReleased = TRUE
 
-# Get data from config.ini
-config = configparser.ConfigParser(allow_no_value=True)
-config.read("config.ini")
-handle = (config["Login"]["bsky_handle"].encode('ascii', 'ignore')).decode("utf-8")
-password = (config["Login"]["app_password"].encode('ascii', 'ignore')).decode("utf-8")
-configLang = (config["Misc"]["language"].encode('ascii', 'ignore')).decode("utf-8")
-
-if configLang == "":
-    langs = ['en', 'ja']
-else:
-    langs = [configLang]
-
 # Bluesky setup
 client = Client()
 loggedIn = FALSE
 postBtnBG = "#f1f3f5"
 postBtnFG = "black"
 pfpOriginal = Image.open("assets/notLoggedIn.png").resize((18, 18))
+langs = ['en', 'ja']
 
-try: 
-    account = client.login(handle, password)
-except:
-    messagebox.showerror("Unable to log in", "SkyDraw couldn't log in to your Bluesky account :(")
-else:
-    loggedIn = TRUE
-    avatar = requests.get(account.avatar)
-    pfpOriginal = Image.open(BytesIO(avatar.content)).resize((18, 18))
-    postBtnBG = bskyBlue
-    postBtnFG = "white"
+def login():
+    global loggedIn, pfpOriginal, postBtnBG, postBtnFG, pfpTk, postButton, langs
+
+    # Get data from config.ini
+    config = configparser.ConfigParser(allow_no_value=True)
+    config.read("config.ini")
+    handle = (config["Login"]["bsky_handle"].encode('ascii', 'ignore')).decode("utf-8")
+    password = (config["Login"]["app_password"].encode('ascii', 'ignore')).decode("utf-8")
+    configLang = (config["Misc"]["language"].encode('ascii', 'ignore')).decode("utf-8")
+
+    if configLang != "":
+        langs = [configLang]
+
+    try: 
+        account = client.login(handle, password)
+    except:
+        messagebox.showerror("Unable to log in", "SkyDraw couldn't log in to your Bluesky account :( \n\nMake sure the login info in the config file is correct and try again.")
+    else:
+        loggedIn = TRUE
+        avatar = requests.get(account.avatar)
+        pfpOriginal = Image.open(BytesIO(avatar.content)).resize((18, 18))
+        pfpTk.paste(pfpOriginal)
+        postButton["text"] = "Post to Bluesky"
+        postButton["bg"] = bskyBlue
+        postButton["fg"] = "white"
+
+def login_thread():
+    t1 = Thread(target=login)
+    t1.start()
 
 # PIL canvas setup
 canvasPath = Path("canvas/")
@@ -91,10 +100,11 @@ def post_to_bsky():
         caption = captionInput.get()
 
         for text in caption.split(" "):
-            if text[0] == '#':
-                postText.tag(text + " ", text[1:])
-            else:
-                postText.text(text + " ")
+            if len(text) > 0:
+                if text[0] == '#' and len(text) > 1:
+                    postText.tag(text + " ", text[1:])
+                else:
+                    postText.text(text + " ")
 
         postText.tag("#SkyDraw", "SkyDraw")
 
@@ -111,7 +121,8 @@ def post_to_bsky():
             clear_canvas()
     
     else:
-        messagebox.showerror("Unable to post", "SkyDraw is not logged in to your Bluesky account.")
+        #messagebox.showerror("Unable to post", "SkyDraw is not logged in to your Bluesky account.")
+        login_thread()
 
 # Window setup
 window = Tk()
@@ -130,7 +141,7 @@ brushSizeSlider = Scale(row1, from_=1, to=64, orient=HORIZONTAL, command=update_
 eraseRangeSlider = Scale(row1, from_=1, to=64, orient=HORIZONTAL, command=update_size)
 captionInput = Entry(row2)
 clearButton = Button(row2, text="Clear Canvas", command=clear_canvas)
-postButton = Button(row2, text="Post to Bluesky ", image=pfpTk, compound="right", fg=postBtnFG, bg=postBtnBG, command=post_to_bsky)
+postButton = Button(row2, text="Login to Bluesky ", image=pfpTk, compound="right", fg=postBtnFG, bg=postBtnBG, command=post_to_bsky)
 
 stabilizerSlider = Scale(row1, from_=1, to=15, orient=HORIZONTAL, command=update_size, length=50)
 altTextInput = Entry(row3)
@@ -317,4 +328,5 @@ canvas.bind("<B3-Motion>", erase)
 window.bind("<ButtonRelease-3>", RMB_released)
 
 # Run program
+window.after_idle(login_thread)
 window.mainloop()
