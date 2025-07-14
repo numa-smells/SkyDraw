@@ -15,9 +15,7 @@ brushSize = 4
 eraseRange = 8
 mouseBuffer = []
 mouseBufferMaxSize = 5 # smoothness
-
-xPrevious = 0
-yPrevious = 0
+prevLine = -1
 LMBWasReleased = TRUE
 
 # Bluesky setup
@@ -184,8 +182,16 @@ postButton.bind("<Enter>", post_hover)
 postButton.bind("<Leave>", post_not_hover)
 
 # Drawing on canvas
+def sign(num):
+    return -1 if num < 0 else 1
+
+#if 3 points are on the same line.
+def collinear(x1,y1,x2,y2,x3,y3):
+    same_direction = sign(x1 - x2) == sign(x2 - x3) and sign(y1 - y2) == sign(y2 - y3)
+    return (y3 - y2)*(x2 - x1) == (y2 - y1)*(x3 - x2) and same_direction
+
 def draw_line():
-    global xPrevious, yPrevious, LMBWasReleased, mouseBuffer
+    global LMBWasReleased, mouseBuffer, prevLine
     
     #get x, y averages
     x = 0
@@ -198,14 +204,16 @@ def draw_line():
     x /= len(mouseBuffer)
     y /= len(mouseBuffer)
 
-    if LMBWasReleased:
-        xPrevious = x
-        yPrevious = y
-    
-    canvas.create_line(xPrevious, yPrevious, x, y, width=brushSize, fill=bskyBlue, capstyle="round", joinstyle="round")
+    if LMBWasReleased: #there is no previous line, so just draw one
+        prevLine = canvas.create_line(x, y, x, y, width=brushSize, fill=bskyBlue, capstyle="round", joinstyle="round")
+    else:
+        prevLineCoords = canvas.coords(prevLine)
+        if collinear(*prevLineCoords,x,y): #if the previous line is colinear with the new point, u can just extend the previous line
+            canvas.coords(prevLine,*(prevLineCoords[:2]),x,y)
+        else: #else make a new line
+            prevLine = canvas.create_line(*(prevLineCoords[2:4]), x, y, width=brushSize, fill=bskyBlue, capstyle="round", joinstyle="round")
+
     LMBWasReleased = FALSE
-    xPrevious = x
-    yPrevious = y
 
 def draw(event):
     global mouseBuffer, mouseBufferMaxSize
