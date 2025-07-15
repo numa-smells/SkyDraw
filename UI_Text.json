@@ -1,0 +1,22 @@
+{
+    "en": {
+        "brush":"Brush: ",
+        "eraser": "   Eraser: ",
+        "stabilizer":"   Stabilizer: ",
+        "caption":"Caption: ",
+        "alt-text":"Alt-text: ",
+        "clear canvas":"Clear Canvas",
+        "login":"Log in ",
+        "post":"Post "
+    },
+    "ja": {
+        "brush":"ブラシ：",
+        "eraser": "　消しゴム：",
+        "stabilizer":"　スムージング：",
+        "caption":"キャプション：",
+        "alt-text":"ALTテキスト：",
+        "clear canvas":"全部消す",
+        "login":"ログイン ",
+        "post":"投稿 "
+    }
+}
