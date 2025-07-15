@@ -190,7 +190,7 @@ def post_to_bsky():
 # Window setup
 window = Tk()
 window.title("SkyDraw")
-window.minsize(512, 580)
+window.minsize(512, 601)
 window.iconbitmap("assets/icon.ico")
 
 pfpTk = ImageTk.PhotoImage(pfpOriginal)
