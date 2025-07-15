@@ -72,16 +72,23 @@ def update_size(event):
 
 # Save canvas as PNG
 def save_as_png():
-    #reduce all line width by .5 to attempt to correct postscript's fault
+    # Reduce all line width by .5 to attempt to correct postscript's fault
     inRange = canvas.find_overlapping(0, 0, 512, 512)
     for i in inRange:
         if i != eraser_border:
             v = float(canvas.itemcget(i,"width"))
             canvas.itemconfig(i, width = max(v - .5,.5))
 
+    # Export the eps file, then open it and save it as png
     canvas.postscript(file="canvas/canvas.eps", pagewidth=511)
     img = Image.open("canvas/canvas.eps")
     img.save(imgPath, "png")
+
+    # Set all line width by back to normal, in the case of being unable to post (so lines don't keep getting thinner with each attempt)
+    for i in inRange:
+        if i != eraser_border:
+            v = float(canvas.itemcget(i,"width"))
+            canvas.itemconfig(i, width = min(v + .5, 64))
 
 # Clear canvas
 def clear_canvas():
@@ -209,9 +216,9 @@ canvas.place(relx=0.5, rely=0.5, anchor="c")
 row3.pack(side=BOTTOM, fill="x")
 row2.pack(side=BOTTOM, fill="x")
 row1.pack(side=BOTTOM, fill="x")
-Label(row1, text="Brush Size: ").pack(side=LEFT)
+Label(row1, text="Brush: ").pack(side=LEFT)
 brushSizeSlider.pack(side=LEFT, fill="x", expand=TRUE)
-Label(row1, text="   Erase Range: ").pack(side=LEFT)
+Label(row1, text="   Eraser: ").pack(side=LEFT)
 eraseRangeSlider.pack(side=LEFT, fill="x", expand=TRUE)
 Label(row2, text="Caption: ").pack(side=LEFT)
 captionInput.pack(side=LEFT, fill="x", expand=TRUE)

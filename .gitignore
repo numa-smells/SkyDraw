@@ -4,3 +4,4 @@ builds/
 dist/
 .venv/
 *.spec
+config.ini
