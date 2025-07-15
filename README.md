@@ -35,7 +35,7 @@ Once the ini file is configured, save it and run the exe (or main.py). If the ap
 - Left click to draw
 - Right click to erase
 - Change the brush and eraser size with the sliders
-- You can type a caption in the text box at the bottom
+- You can type a caption and enter alt text in the text boxes at the bottom
 - Click the "Clear Canvas" button to, uhh...
 - Click the "Post to Bluesky" button to... clear the canvas?
 - TIP: If you want to draw at the very edges of the canvas without accidentally clicking on something else (like the close button...), you can make the window bigger (the canvas will stay the same size)
@@ -44,9 +44,9 @@ Once the ini file is configured, save it and run the exe (or main.py). If the ap
 - No undo/redo
 - Only one colour
 - Posting will also immediately clear the canvas if the post was successful (this is intentional, done is done).
-- Drawn lines in the final posted image will be slightly thicker than they were while drawing. This is a quirk with how drawing and image conversion is handled in this app. It's complicated, not sure how to fix this without using a completely different framework and rewriting everything (turns out tkinter isn't really suitable for this kind of application it seems).
+- Drawn lines in the final posted image may be slightly thicker than they were while drawing. This is a quirk with how drawing and image conversion is handled in this app. It's complicated, not sure how to fix this without using a completely different framework and rewriting everything (turns out tkinter isn't really suitable for this kind of application it seems).
 - The program will probably lag if too many lines are drawn. Erasing lines will help if this happens.
-- Hashtags (and tagging other users, I assume) don't work in the caption field, they won't be blue and clickable in the post. #SkyDraw will always be added at the end though (and is a proper tag).
+- <s>Hashtags (and tagging other users, I assume) don't work in the caption field, they won't be blue and clickable in the post.</s> Thanks to [numa](https://github.com/numa-smells) for fixing this!
 - Posts won't have any content warnings applied, so sensitive drawings may get them slapped on later on by Bluesky moderation. I may add a checkbox for it eventually, if I can figure out how to get that working.
 
 <img src="https://cdn.bsky.app/img/feed_fullsize/plain/did:plc:pkhdd7vr3zruq3uszwqunews/bafkreifgda3tdua2juhe4revltkitwhnkdm5tdwpb5646kjs2fjdtpktsa@jpeg" alt="sampleImage3" width="256"/>
