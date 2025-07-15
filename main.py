@@ -136,7 +136,7 @@ def resolve_handle(handle: str) -> str | None:
 def clean_input(s):
     return s.strip().replace(u'\u202a',"").replace(u'\u202c',"")
 
-hashtag_regex = re.compile(r'#[^\s!@#$%^&*()=+./,\[{\]};:\'"?><]+') #should work universaly now
+hashtag_regex = re.compile(r'[#＃][^\s!@#$%^&*()=+./,\[{\]};:\'"?><]+') #should work universaly now
 link_regex = re.compile(r'((http|https)://)(www.)?[a-zA-Z0-9@:%._\+~#?&//=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%._\+~#?&//=]*)')
 #full urls only.
 
@@ -146,7 +146,7 @@ def post_to_bsky():
 
     if loggedIn:
         caption = clean_input(captionInput.get())
-        alt_text = clean_input(alt_text.get())
+        alt_text = clean_input(altTextInput.get())
 
         #validate inputs
         if (len(caption) > 300):
