@@ -160,15 +160,16 @@ def post_to_bsky():
         #build text
         postText = client_utils.TextBuilder()
 
-        for text in caption.split(" "):
+        
+        #https://stackoverflow.com/questions/6319551/whats-the-best-separator-delimiter-characters-for-a-plaintext-db-file 
+        #the ␟ is an ascii unit seperator, it should never show up
+        for text in caption.replace(" ","␟ ␟").replace("　","␟　␟").split("␟"):
             if re.fullmatch(hashtag_regex, text) != None:
                 postText.tag(text, text[1:])
-                postText.text(" ")
                 continue
 
             if re.fullmatch(link_regex, text) != None:
                 postText.link(text, text)
-                postText.text(" ")
                 continue
 
             if len(text) > 1 and text[0] == '@':
@@ -178,11 +179,11 @@ def post_to_bsky():
                     return
                 
                 postText.mention(text, did)
-                postText.text(" ")
                 continue
             
-            postText.text(text + " ")
+            postText.text(text)
 
+        postText.text(" ")
         postText.tag("#SkyDraw", "SkyDraw")
 
         with open(imgPath, 'rb') as f:
