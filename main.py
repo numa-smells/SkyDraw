@@ -40,10 +40,10 @@ def login():
     # Get data from config.ini
     config = configparser.ConfigParser(allow_no_value=True)
     config.read("config.ini")
-    handle = (config["Login"]["bsky_handle"].encode('ascii', 'ignore')).decode("utf-8")
-    password = (config["Login"]["app_password"].encode('ascii', 'ignore')).decode("utf-8")
-    configLang = (config["Misc"]["language"].encode('ascii', 'ignore')).decode("utf-8")
-
+    handle = clean_input(config["Login"]["bsky_handle"])
+    password = clean_input(config["Login"]["app_password"])
+    configLang = clean_input(config["Misc"]["language"])
+    
     if configLang != "":
         langs = [configLang]
         
@@ -133,7 +133,10 @@ def resolve_handle(handle: str) -> str | None:
 
     return result
 
-hashtag_regex = re.compile(r'(^|\B)#(?![0-9_]+\b)([a-zA-Z0-9_]{1,30})(\b|\r)')
+def clean_input(s):
+    return s.strip().replace(u'\u202a',"").replace(u'\u202c',"")
+
+hashtag_regex = re.compile(r'#[^\s!@#$%^&*()=+./,\[{\]};:\'"?><]+') #should work universaly now
 link_regex = re.compile(r'((http|https)://)(www.)?[a-zA-Z0-9@:%._\+~#?&//=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%._\+~#?&//=]*)')
 #full urls only.
 
@@ -142,8 +145,8 @@ def post_to_bsky():
     save_as_png()
 
     if loggedIn:
-        caption = captionInput.get()
-        alt_text = altTextInput.get()
+        caption = clean_input(captionInput.get())
+        alt_text = clean_input(alt_text.get())
 
         #validate inputs
         if (len(caption) > 300):
