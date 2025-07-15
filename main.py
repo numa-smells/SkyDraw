@@ -146,7 +146,7 @@ def post_to_bsky():
 
     if loggedIn:
         caption = clean_input(captionInput.get())
-        alt_text = clean_input(alt_text.get())
+        alt_text = clean_input(altTextInput.get())
 
         #validate inputs
         if (len(caption) > 300):
