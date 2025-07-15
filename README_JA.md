@@ -26,11 +26,11 @@
 設定済みのiniファイルはこんな感じになります：
 ```
 [Login]
-bsky_handle = yourcoolname.bsky.social
+bsky_handle = kakkoiinamae.bsky.social
 app_password = abcd-1234-efgh-5678
 
 [Misc]
-language = en
+language = ja
 ```
 
 iniファイルの設定が済んだら、保存をして、exeファイル(またはmain.py)を実行してください。
