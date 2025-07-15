@@ -1,7 +1,7 @@
 # SkyDraw
 Anti-perfectionist Bluesky doodling application
 
-[説明の日本語バージョンはこっちです！](https://github.com/iamsako/SkyDraw/blob/main/README_JA.md)
+[日本語の説明はこっちです！](https://github.com/iamsako/SkyDraw/blob/main/README_JA.md)
 
 <img src="https://cdn.bsky.app/img/feed_fullsize/plain/did:plc:pkhdd7vr3zruq3uszwqunews/bafkreic2wdtqbr3riaaz2eja3eelzkapezd7wokmjbeg3yucboz2kx7rxq@jpeg" alt="sampleImage1" width="256"/> <img src="https://cdn.bsky.app/img/feed_fullsize/plain/did:plc:pkhdd7vr3zruq3uszwqunews/bafkreia67hg7rpfdvrjknsvinph2ytirmd7mlkakrbenen2vsamyftavbe@jpeg" alt="sampleImage2" width="256"/> <img src="https://cdn.bsky.app/img/feed_fullsize/plain/did:plc:pkhdd7vr3zruq3uszwqunews/bafkreiez5ta2xdwsvc4xwpjsubxiq2vmsveydzlwqiaydlargwo67znxri@jpeg" alt="sampleImage3" width="256"/>
 
