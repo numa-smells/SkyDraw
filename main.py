@@ -1,5 +1,6 @@
 import requests
 import configparser
+import json
 from tkinter import *
 from tkinter import messagebox
 from PIL import ImageTk, Image
@@ -20,6 +21,11 @@ mouseBufferMaxSize = 5 # smoothness
 prevLine = -1
 LMBWasReleased = TRUE
 
+# Import user facing strings from UI_Text.json (for multi language support)
+appLang = "en"
+with open('UI_Text.json', 'r', encoding="utf-8") as file:
+    UIText = json.load(file)
+
 # Bluesky setup
 client = Client()
 loggedIn = FALSE
@@ -29,7 +35,7 @@ pfpOriginal = Image.open("assets/notLoggedIn.png").resize((18, 18))
 langs = ['en', 'ja']
 
 def login():
-    global loggedIn, pfpOriginal, postBtnBG, postBtnFG, pfpTk, postButton, langs
+    global appLang, loggedIn, pfpOriginal, postBtnBG, postBtnFG, pfpTk, postButton, langs
 
     # Get data from config.ini
     config = configparser.ConfigParser(allow_no_value=True)
@@ -40,6 +46,10 @@ def login():
 
     if configLang != "":
         langs = [configLang]
+        
+        # Change app language if lang is set to a supported language
+        if configLang == "ja":
+            appLang = "ja"
 
     try: 
         account = client.login(handle, password)
@@ -131,8 +141,8 @@ def post_to_bsky():
     save_as_png()
 
     if loggedIn:
-        caption = (captionInput.get().strip().encode('ascii', 'ignore')).decode("utf-8")
-        alt_text = (altTextInput.get().strip().encode('ascii', 'ignore')).decode("utf-8")
+        caption = captionInput.get()
+        alt_text = altTextInput.get()
 
         #validate inputs
         if (len(caption) > 300):
