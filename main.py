@@ -50,6 +50,7 @@ def login():
         # Change app language if lang is set to a supported language
         if configLang == "ja":
             appLang = "ja"
+            change_language()
 
     try: 
         account = client.login(handle, password)
@@ -60,7 +61,7 @@ def login():
         avatar = requests.get(account.avatar)
         pfpOriginal = Image.open(BytesIO(avatar.content)).resize((18, 18))
         pfpTk.paste(pfpOriginal)
-        postButton["text"] = "Post to Bluesky"
+        postButton["text"] = UIText[appLang]["post"]
         postButton["bg"] = bskyBlue
         postButton["fg"] = "white"
 
@@ -207,17 +208,25 @@ pfpTk = ImageTk.PhotoImage(pfpOriginal)
 
 topSpace = Frame(width=512, height=512)
 canvas = Canvas(topSpace, width=512, height=512, bg="white", highlightthickness=0)
+
 row1 = Frame(window, width=512)
 row2 = Frame(window, width=512)
 row3 = Frame(window, width=512)
-brushSizeSlider = Scale(row1, from_=1, to=64, orient=HORIZONTAL, command=update_size)
-eraseRangeSlider = Scale(row1, from_=1, to=64, orient=HORIZONTAL, command=update_size)
-captionInput = Entry(row2)
-clearButton = Button(row2, text="Clear Canvas", command=clear_canvas)
-postButton = Button(row2, text="Login to Bluesky ", image=pfpTk, compound="right", fg=postBtnFG, bg=postBtnBG, command=post_to_bsky)
 
+brushLabel = Label(row1, text=UIText["en"]["brush"])
+brushSizeSlider = Scale(row1, from_=1, to=64, orient=HORIZONTAL, command=update_size)
+eraserLabel = Label(row1, text=UIText["en"]["eraser"])
+eraseRangeSlider = Scale(row1, from_=1, to=64, orient=HORIZONTAL, command=update_size)
+stabilizerLabel = Label(row1, text="   Stabilizer: ")
 stabilizerSlider = Scale(row1, from_=1, to=15, orient=HORIZONTAL, command=update_size, length=50)
+
+captionLabel = Label(row2, text="Caption: ")
+captionInput = Entry(row2)
+
+altTextLabel = Label(row3, text="Alt-Text: ")
 altTextInput = Entry(row3)
+clearButton = Button(row3, text="Clear Canvas", command=clear_canvas)
+postButton = Button(row3, text="Log in ", image=pfpTk, compound="right", fg=postBtnFG, bg=postBtnBG, command=post_to_bsky)
 
 # Place and pack elements
 topSpace.pack(side=TOP, fill="both", expand=TRUE)
@@ -226,20 +235,31 @@ canvas.place(relx=0.5, rely=0.5, anchor="c")
 row3.pack(side=BOTTOM, fill="x")
 row2.pack(side=BOTTOM, fill="x")
 row1.pack(side=BOTTOM, fill="x")
-Label(row1, text="Brush: ").pack(side=LEFT)
+
+brushLabel.pack(side=LEFT)
 brushSizeSlider.pack(side=LEFT, fill="x", expand=TRUE)
-Label(row1, text="   Eraser: ").pack(side=LEFT)
+eraserLabel.pack(side=LEFT)
 eraseRangeSlider.pack(side=LEFT, fill="x", expand=TRUE)
-Label(row2, text="Caption: ").pack(side=LEFT)
+stabilizerLabel.pack(side=LEFT)
+stabilizerSlider.pack(side=LEFT, fill="x", expand=TRUE)
+
+captionLabel.pack(side=LEFT)
 captionInput.pack(side=LEFT, fill="x", expand=TRUE)
+
+altTextLabel.pack(side=LEFT)
+altTextInput.pack(side=LEFT, fill="x", expand=TRUE)
 postButton.pack(side=RIGHT)
 clearButton.pack(side=RIGHT)
 
-Label(row1, text="   Stabilizer: ").pack(side=LEFT)
-stabilizerSlider.pack(side=LEFT, fill="x", expand=TRUE)
-
-Label(row3, text="Alt-Text: ").pack(side=LEFT)
-altTextInput.pack(side=LEFT, fill="x", expand=TRUE)
+# Change language of labels and other UI elements
+def change_language():
+    brushLabel["text"] = UIText[appLang]["brush"]
+    eraserLabel["text"] = UIText[appLang]["eraser"]
+    stabilizerLabel["text"] = UIText[appLang]["stabilizer"]
+    captionLabel["text"] = UIText[appLang]["caption"]
+    altTextLabel["text"] = UIText[appLang]["alt-text"]
+    clearButton["text"] = UIText[appLang]["clear canvas"]
+    postButton["text"] = UIText[appLang]["login"]
 
 # Set sliders to default values
 brushSizeSlider.set(brushSize)
