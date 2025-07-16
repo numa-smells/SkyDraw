@@ -43,12 +43,12 @@ def onload():
     configLang = clean_input(config["Misc"]["language"])
 
     if configLang != "":
-            langs = [configLang]
-            
-            # Change app language if lang is set to a supported language
-            if configLang == "ja":
-                appLang = "ja"
-                change_language()
+        langs = [configLang]
+        
+        # Change app language if lang is set to a supported language
+        if configLang == "ja":
+            appLang = "ja"
+            change_language()
 
     try:
         brushSize = int(clean_input(config["Canvas"]["brush_size"])) 
@@ -147,7 +147,7 @@ def resolve_handle(handle: str) -> str | None:
             response = requests.get(f"https://{handle}/.well-known/atproto-did", timeout=5.0)
             response.raise_for_status()
             result = response.text.strip()
-        except requests.ConnectionError:
+        except (requests.ConnectionError, requests.HTTPError):
             pass
 
     return result
@@ -403,7 +403,6 @@ def aabb(ax_min, ay_min, ax_max, ay_max, bx_min, by_min, bx_max, by_max):
     return (ax_min <= bx_max and ax_max >= bx_min) and (ay_min <= by_max and ay_max >= by_min) 
 
 def erase(event):
-    canvas.config(cursor="none")
     x = event.x
     y = event.y
     
@@ -488,7 +487,6 @@ def create_line_group(segments, line_width):
 
 def RMB_released(event):
     canvas.itemconfig(eraser_border, state='hidden')
-    canvas.config(cursor="tcross")
 
 # Draw bindings
 canvas.bind("<B1-Motion>", draw)
