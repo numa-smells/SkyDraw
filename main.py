@@ -10,6 +10,7 @@ from pathlib import Path
 from threading import *
 import re
 import dns.resolver
+import time
 
 # Variables
 bskyBlue = "#1083fe"
@@ -248,7 +249,7 @@ captionInput = Entry(row2)
 
 altTextLabel = Label(row3, text="Alt-Text: ")
 altTextInput = Entry(row3)
-clearButton = Button(row3, text="Clear Canvas", command=clear_canvas)
+clearButton = Button(row3, text="Clear Canvas")
 postButton = Button(row3, text="Log in ", image=pfpTk, compound="right", fg=postBtnFG, bg=postBtnBG, command=post_to_bsky)
 
 # Place and pack elements
@@ -513,6 +514,48 @@ brushSizeSlider.bind("<ButtonRelease-1>", lambda event: canvas.itemconfig(brush_
 eraseRangeSlider.bind("<B1-Motion>", eraserPreview)
 eraseRangeSlider.bind("<ButtonRelease-1>", lambda event: canvas.itemconfig(eraser_border, state='hidden'))
 
+clearButtonText = "Clear Canvas"
+clearButtonReleased = False
+clearButtonTime = 0
+
+def clear_timer():
+    global clearButtonText, clearButtonTime, clear_timer_worker, clearButtonReleased
+    if not clearButtonReleased:
+        if clearButtonTime < 10:
+            clearButtonTime += 1
+            clearButton["text"] = clearButtonTime//2 * "█" + (clearButtonTime%2)*"▌" + (5-clearButtonTime//2-(clearButtonTime%2)) * "    " 
+            time.sleep(.1)
+            clear_timer()
+        elif clearButtonTime == 10:
+            clearButton["text"] = clearButtonText
+            clearButtonTime += 1
+            clear_canvas()
+    
+clear_timer_worker = None
+
+def clear_button_hold(event):
+    global clearButtonText, clearButtonReleased, clear_timer_worker
+    clearButtonText = clearButton["text"]
+    clearButtonReleased = False
+
+    if not clear_timer_worker: 
+        clear_timer_worker = Thread(target=clear_timer)
+        clear_timer_worker.start()
+    
+  
+def clear_button_release(event):
+    global clearButtonText, clearButtonReleased, clear_timer_worker, clearButtonTime
+    clearButtonReleased = True
+
+    if clear_timer_worker:
+        clear_timer_worker.join()
+        clear_timer_worker = None
+        clearButtonTime = 0
+
+    clearButton["text"] = clearButtonText
+
+clearButton.bind("<Button-1>", clear_button_hold)
+clearButton.bind("<ButtonRelease-1>", clear_button_release)
 
 # Run program
 window.after_idle(onload)
