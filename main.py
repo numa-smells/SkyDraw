@@ -3,7 +3,7 @@ import configparser
 import json
 from tkinter import *
 from tkinter import messagebox
-from PIL import ImageTk, Image
+from PIL import ImageTk, Image, ImageGrab
 from atproto import Client, client_utils
 from io import BytesIO
 from pathlib import Path
@@ -33,29 +33,58 @@ postBtnBG = "#f1f3f5"
 postBtnFG = "black"
 pfpOriginal = Image.open("assets/notLoggedIn.png").resize((18, 18))
 langs = ['en', 'ja']
+config = configparser.ConfigParser(allow_no_value=True)
 
-def login():
-    global appLang, loggedIn, pfpOriginal, postBtnBG, postBtnFG, pfpTk, postButton, langs
+
+def onload():
+    global langs, appLang, brushSize, eraseRange, mouseBufferMaxSize
+    
+    config.read("config.ini")
+    configLang = clean_input(config["Misc"]["language"])
+
+    if configLang != "":
+            langs = [configLang]
+            
+            # Change app language if lang is set to a supported language
+            if configLang == "ja":
+                appLang = "ja"
+                change_language()
+
+    try:
+        brushSize = int(clean_input(config["Canvas"]["brush_size"])) 
+        brushSizeSlider.set(brushSize)
+    except ValueError: 
+        pass
+
+    try:
+        eraseRange = int(clean_input(config["Canvas"]["eraser_range"]))
+        eraseRangeSlider.set(eraseRange)
+    except ValueError: 
+        pass
+
+    try:
+        mouseBufferMaxSize = int(clean_input(config["Canvas"]["stabilizer"]))
+        stabilizerSlider.set(mouseBufferMaxSize)
+    except ValueError: 
+        pass
+
+    login_thread(TRUE)
+    
+
+
+def login(skip_warning = False):
+    global loggedIn, pfpOriginal, postBtnBG, postBtnFG, pfpTk, postButton
 
     # Get data from config.ini
-    config = configparser.ConfigParser(allow_no_value=True)
     config.read("config.ini")
     handle = clean_input(config["Login"]["bsky_handle"])
     password = clean_input(config["Login"]["app_password"])
-    configLang = clean_input(config["Misc"]["language"])
     
-    if configLang != "":
-        langs = [configLang]
-        
-        # Change app language if lang is set to a supported language
-        if configLang == "ja":
-            appLang = "ja"
-            change_language()
-
     try: 
         account = client.login(handle, password)
     except:
-        messagebox.showerror("Unable to log in", "SkyDraw couldn't log in to your Bluesky account :( \n\nMake sure the login info in the config file is correct and try again.")
+        if (not skip_warning):
+            messagebox.showerror("Unable to log in", "SkyDraw couldn't log in to your Bluesky account :( \n\nMake sure the login info in the config file is correct and try again.")
     else:
         loggedIn = TRUE
         avatar = requests.get(account.avatar)
@@ -65,8 +94,8 @@ def login():
         postButton["bg"] = bskyBlue
         postButton["fg"] = "white"
 
-def login_thread():
-    t1 = Thread(target=login)
+def login_thread(skip_warning = False):
+    t1 = Thread(target=login, args=[skip_warning])
     t1.start()
 
 # PIL canvas setup
@@ -83,29 +112,19 @@ def update_size(event):
 
 # Save canvas as PNG
 def save_as_png():
-    # Reduce all line width by .5 to attempt to correct postscript's fault
-    inRange = canvas.find_overlapping(0, 0, 512, 512)
-    for i in inRange:
-        if i != eraser_border:
-            v = float(canvas.itemcget(i,"width"))
-            canvas.itemconfig(i, width = max(v - .5,.5))
-
-    # Export the eps file, then open it and save it as png
-    canvas.postscript(file="canvas/canvas.eps", pagewidth=511)
-    img = Image.open("canvas/canvas.eps")
-    img.save(imgPath, "png")
-
-    # Set all line width by back to normal, in the case of being unable to post (so lines don't keep getting thinner with each attempt)
-    for i in inRange:
-        if i != eraser_border:
-            v = float(canvas.itemcget(i,"width"))
-            canvas.itemconfig(i, width = min(v + .5, 64))
+    window.attributes("-topmost", True) #incase you have an always-on-top application running
+    x = window.winfo_rootx() + canvas.winfo_x()
+    y = window.winfo_rooty() + canvas.winfo_y()
+    xx = x + canvas.winfo_width()
+    yy = y + canvas.winfo_height()
+    ImageGrab.grab(bbox=(x, y, xx, yy), all_screens=TRUE).save(imgPath)
+    window.attributes("-topmost", False)
 
 # Clear canvas
 def clear_canvas():
     inRange = canvas.find_overlapping(0, 0, 512, 512)
     for stroke in inRange:
-        if stroke != eraser_border:
+        if stroke not in tool_shapes:
             canvas.delete(stroke)
 
 def resolve_handle(handle: str) -> str | None:
@@ -270,6 +289,10 @@ brushSizeSlider.set(brushSize)
 eraseRangeSlider.set(eraseRange)
 stabilizerSlider.set(mouseBufferMaxSize)
 
+eraser_border = canvas.create_rectangle(0,0,0,0,outline="#7F7F7F", state='hidden')
+brush_border = canvas.create_oval(0,0,0,0,outline="#7F7F7F", state='hidden')
+tool_shapes = [eraser_border, brush_border]
+
 # Change post button color when hovering over it
 def post_hover(event):
     if loggedIn:
@@ -307,16 +330,16 @@ def draw_line():
         prevLine = canvas.create_line(x, y, x, y, width=brushSize, fill=bskyBlue, capstyle="round", joinstyle="round")
     else:
         prevLineCoords = canvas.coords(prevLine)
-        if collinear(*prevLineCoords,x,y): #if the previous line is colinear with the new point, u can just extend the previous line
-            canvas.coords(prevLine,*(prevLineCoords[:2]),x,y)
+        if collinear(*prevLineCoords[-4:],x,y): #if the previous line is colinear with the new point, u can just extend the previous line
+            canvas.coords(prevLine,*(prevLineCoords[:-2]),x,y)
         else: #else make a new line
-            prevLine = canvas.create_line(*(prevLineCoords[2:4]), x, y, width=brushSize, fill=bskyBlue, capstyle="round", joinstyle="round")
+            canvas.coords(prevLine,*prevLineCoords,x,y)
 
     LMBWasReleased = FALSE
-
+    
 def draw(event):
     global mouseBuffer, mouseBufferMaxSize
-
+    canvas.itemconfig(eraser_border, state='hidden')
     mouseBuffer.append([event.x, event.y])
     mouseBuffer = mouseBuffer[-mouseBufferMaxSize:]
     
@@ -333,9 +356,7 @@ def LMB_released(event):
             draw_line()
 
     mouseBuffer.clear()
-    LMBWasReleased = TRUE   
-
-eraser_border = canvas.create_rectangle(0,0,0,0,outline="#7F7F7F", state='hidden')
+    LMBWasReleased = TRUE
 
 def pointInBox(ax,ay,x0,y0,x1,y1):
     return (x0 <= ax <= x1) and (y0 <= ay <= y1)
@@ -378,7 +399,11 @@ def boxIntersection(x_in,y_in,x_out,y_out,x0,y0,x1,y1):
     
     return -1, -1 #error, should never happen
 
+def aabb(ax_min, ay_min, ax_max, ay_max, bx_min, by_min, bx_max, by_max):  
+    return (ax_min <= bx_max and ax_max >= bx_min) and (ay_min <= by_max and ay_max >= by_min) 
+
 def erase(event):
+    canvas.config(cursor="none")
     x = event.x
     y = event.y
     
@@ -389,51 +414,108 @@ def erase(event):
     
     inRange = canvas.find_overlapping(*eraseRect)
     for stroke in inRange:
-        if stroke != eraser_border:
-            ax,ay,bx,by = canvas.coords(stroke)
-            line_width = float(canvas.itemcget(stroke,"width"))/2
-            state = 0
+        if stroke not in tool_shapes:
+            stroke_coords = canvas.coords(stroke)
+            line_width = float(canvas.itemcget(stroke,"width"))
+            
+            canvas.delete(stroke)
 
             #increase eraser relative to line width
-            eraseRect_w = [x-eraseRange-line_width, y-eraseRange-line_width, x+eraseRange+line_width, y+eraseRange+line_width]
+            eraseRect_w = [x-eraseRange-line_width/2, y-eraseRange-line_width/2, x+eraseRange+line_width/2, y+eraseRange+line_width/2]
+        
+            last_seg = 0
+            
+            #iterate through a line segment
+            for i in range(len(stroke_coords)//2-1):
+                ax,ay,bx,by = stroke_coords[i*2 : i*2 + 4]
 
-            #check which points are inside the rectangle
-            if (pointInBox(ax,ay,*eraseRect_w)): state += 1
-            if (pointInBox(bx,by,*eraseRect_w)): state += 2
+                #check if line segment intersects with the eraser
+                if not aabb(*eraseRect_w, min(ax,bx),min(ay,by),max(ax,bx),max(ay,by)):
+                    continue
 
-            match state:
-                case 0:
-                    #this means the line intersects the box at two points
-                    #so it has to be split into two lines 
+                state = 0
 
-                    nx, ny = boxIntersection(ax,ay,bx,by,*eraseRect_w)
-                    if (nx != -1 ):
-                        canvas.coords(stroke,nx,ny,bx,by)
+                #check which points are inside the rectangle
+                if (pointInBox(ax,ay,*eraseRect_w)): state += 1
+                if (pointInBox(bx,by,*eraseRect_w)): state += 2
 
-                    nx, ny = boxIntersection(bx,by,ax,ay,*eraseRect_w)
-                    if (nx != -1 ):
-                        canvas.create_line(nx,ny,ax,ay, width=line_width*2, fill=bskyBlue, capstyle="round", joinstyle="round")
+                match state:
+                    case 0:
+                        #this means the line intersects the box at two points
+                        #so it has to be split into two lines 
 
-                case 1:#if its just one, move the colliding point to the intersection point
-                    nx, ny = boxIntersection(ax,ay,bx,by,*eraseRect_w)
-                    if (nx != -1):
-                        canvas.coords(stroke,nx,ny,bx,by)
-                case 2:
-                    nx, ny = boxIntersection(bx,by,ax,ay,*eraseRect_w)
-                    if (nx != -1):
-                        canvas.coords(stroke,ax,ay,nx,ny)
-                case 3:#the entire line is within the eraser, so delete it
-                    canvas.delete(stroke)
+                        nx, ny = boxIntersection(bx,by,ax,ay,*eraseRect_w)
+                        nx2, ny2 = boxIntersection(ax,ay,bx,by,*eraseRect_w)
+
+                        if (nx != -1 and nx2 != -1):
+                            create_line_group(stroke_coords[last_seg*2:i*2+2] + [nx, ny], line_width)
+
+                            stroke_coords[i*2] = nx2
+                            stroke_coords[i*2+1] = ny2
+                            
+                            last_seg = i
+
+                    case 1:#if its just one, move the colliding point to the intersection point
+
+                        nx, ny = boxIntersection(ax,ay,bx,by,*eraseRect_w)
+                        if (nx != -1):
+                            stroke_coords[i*2] = nx
+                            stroke_coords[i*2+1] = ny
+                            last_seg = i
+                    case 2:
+                        nx, ny = boxIntersection(bx,by,ax,ay,*eraseRect_w)
+                        if (nx != -1):
+                            create_line_group(stroke_coords[last_seg*2:i*2+2] + [nx, ny], line_width)
+                            last_seg = i + 2
+
+                    case 3:#the entire line is within the eraser, so delete it
+
+                        last_seg = i + 2
+
+
+            create_line_group(stroke_coords[last_seg*2:], line_width)
+
+def create_line_group(segments, line_width):
+    n = len(canvas.find_overlapping(0,0,512,512))
+    
+    ls = len(segments)
+    if ls < 2 or ls % 2 == 1: return
+    if ls == 2:
+        canvas.create_line(*segments, *segments, width=line_width, fill=bskyBlue, capstyle="round", joinstyle="round")
+        return
+    canvas.create_line(*segments, width=line_width, fill=bskyBlue, capstyle="round", joinstyle="round")
+
 
 def RMB_released(event):
     canvas.itemconfig(eraser_border, state='hidden')
+    canvas.config(cursor="tcross")
 
 # Draw bindings
 canvas.bind("<B1-Motion>", draw)
 window.bind("<ButtonRelease-1>", LMB_released)
 canvas.bind("<B3-Motion>", erase)
 window.bind("<ButtonRelease-3>", RMB_released)
+canvas.config(cursor="tcross")
+
+def brushPreview(event):
+    r = brushSize / 2
+    canvas.tag_raise(brush_border)
+    canvas.itemconfig(brush_border, state='normal')
+    canvas.coords(brush_border,256-r, 256-r, 256+r,256+r)
+
+def eraserPreview(event):
+    r = eraseRange
+    canvas.tag_raise(eraser_border)
+    canvas.itemconfig(eraser_border, state='normal')
+    canvas.coords(eraser_border,256-r, 256-r, 256+r,256+r)
+
+brushSizeSlider.bind("<B1-Motion>", brushPreview)
+brushSizeSlider.bind("<ButtonRelease-1>", lambda event: canvas.itemconfig(brush_border, state='hidden'))
+
+eraseRangeSlider.bind("<B1-Motion>", eraserPreview)
+eraseRangeSlider.bind("<ButtonRelease-1>", lambda event: canvas.itemconfig(eraser_border, state='hidden'))
+
 
 # Run program
-window.after_idle(login_thread)
+window.after_idle(onload)
 window.mainloop()
