@@ -123,7 +123,7 @@ def save_as_png():
 
 # Clear canvas
 def clear_canvas():
-    inRange = canvas.find_overlapping(0, 0, 512, 512)
+    inRange = canvas.find_all()
     for stroke in inRange:
         if stroke not in tool_shapes:
             canvas.delete(stroke)
@@ -476,8 +476,6 @@ def erase(event):
             create_line_group(stroke_coords[last_seg*2:], line_width)
 
 def create_line_group(segments, line_width):
-    n = len(canvas.find_overlapping(0,0,512,512))
-    
     ls = len(segments)
     if ls < 2 or ls % 2 == 1: return
     if ls == 2:
@@ -520,13 +518,16 @@ clearButtonTime = 0
 
 def clear_timer():
     global clearButtonText, clearButtonTime, clear_timer_worker, clearButtonReleased
+
+    blocks = ["    ","▏", "▎","▍","▌","▋","▊","▊"] #makes the slider much smoother
+
     if not clearButtonReleased:
-        if clearButtonTime < 10:
+        if clearButtonTime < 40:
             clearButtonTime += 1
-            clearButton["text"] = clearButtonTime//2 * "█" + (clearButtonTime%2)*"▌" + (5-clearButtonTime//2-(clearButtonTime%2)) * "    " 
-            time.sleep(.1)
+            clearButton["text"] = clearButtonTime//8 * "█" + blocks[clearButtonTime%8] + (4-clearButtonTime//8) * "    " 
+            time.sleep(.025)
             clear_timer()
-        elif clearButtonTime == 10:
+        elif clearButtonTime == 40:
             clearButton["text"] = clearButtonText
             clearButtonTime += 1
             clear_canvas()
